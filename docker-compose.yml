@@ -1,0 +1,10 @@
+version: '3'
+
+services:
+  app:
+    build: .
+    ports:
+      - "8080:80"
+    volumes:
+      - ./1.json:/usr/share/nginx/html/1.json
+    restart: unless-stopped
