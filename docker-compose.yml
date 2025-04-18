@@ -4,7 +4,7 @@ services:
   app:
     build: .
     ports:
-      - "8080:80"
+      - "8080:8080"
     volumes:
       - ./public/1.json:/usr/share/nginx/html/1.json
     restart: unless-stopped
