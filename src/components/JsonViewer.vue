@@ -23,22 +23,37 @@
       <div class="entry" v-for="(item, index) in jsonData" :key="index">
         <div class="entry-header">
           <div class="entry-id">ID: {{ item.id || '未知' }}</div>
-          <div class="entry-source">来源: {{ item.source || '未知' }}</div>
+          <div class="entry-source">问题来源: {{ item.source || '未知' }}</div>
         </div>
         
         <div class="entry-question" v-if="item.question">
-          {{ item.question }}
+          用户提问: {{ item.question }}
         </div>
         
-        <div class="entry-answer" v-if="item.answer" v-html="renderMarkdown(item.answer)"></div>
+        <div class="entry-optimized" v-if="item.optimized_query">
+          <strong>优化后查询:</strong> <span v-html="processThinkTags(item.optimized_query)"></span>
+        </div>
+        
+        <div class="entry-answer-container" v-if="item.answer">
+          <div class="answer-header">回答内容</div>
+          <div class="entry-answer" v-html="renderMarkdown(item.answer)"></div>
+        </div>
         
         <div class="entry-context" v-if="item.context && item.context !== '无相关上下文'">
           <strong>上下文:</strong>
-          <pre>{{ item.context }}</pre>
+          <div class="context-text">{{ item.context }}</div>
         </div>
         
-        <div class="entry-lang" v-if="item.lang">
-          语言: {{ item.lang }}
+        <div class="entry-footer">
+          <span class="entry-lang" v-if="item.lang">
+            语言: {{ item.lang }}
+          </span>
+          <span class="entry-model" v-if="item.query_model">
+            查询模型: {{ item.query_model }}
+          </span>
+          <span class="entry-model" v-if="item.answer_model">
+            回答模型: {{ item.answer_model }}
+          </span>
         </div>
       </div>
     </div>
@@ -104,11 +119,15 @@ export default {
         alert('加载示例文件失败: ' + error.message);
       }
     },
-    renderMarkdown(text) {
-      // 处理<think>标签内的内容
-      const processedText = text.replace(/<think>([\s\S]*?)<\/think>/g, 
+    processThinkTags(text) {
+      if (!text) return '';
+      return text.replace(/<think>([\s\S]*?)<\/think>/g, 
         '<div class="think-section">$1</div>');
-      
+    },
+    renderMarkdown(text) {
+      if (!text) return '';
+      // 处理<think>标签内的内容
+      const processedText = this.processThinkTags(text);
       return marked(processedText);
     }
   }
@@ -209,9 +228,28 @@ input[type="file"] {
   margin-bottom: 15px;
 }
 
-.entry-answer {
+.entry-optimized {
+  padding: 10px 15px;
+  border-radius: 4px;
+  margin-bottom: 15px;
+  border-left: 3px solid #888888;
+  font-size: 0.95em;
+}
+
+.entry-answer-container {
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  padding: 15px;
   margin-bottom: 20px;
-  line-height: 1.6;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+}
+
+.entry-answer-container {
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  padding: 15px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
 }
 
 .entry-context {
@@ -221,13 +259,30 @@ input[type="file"] {
   margin-bottom: 15px;
   font-size: 0.9em;
   color: #555;
-  overflow-x: auto;
+}
+
+.context-text {
+  margin-top: 8px;
+  line-height: 1.5;
+  white-space: pre-line; /* Preserves line breaks but wraps text */
+}
+
+.entry-footer {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8em;
+  color: #999;
+  margin-top: 10px;
 }
 
 .entry-lang {
   font-size: 0.8em;
   color: #999;
   text-align: right;
+}
+
+.entry-model {
+  font-style: italic;
 }
 
 .no-content {
@@ -247,12 +302,11 @@ pre {
 }
 
 :deep(.think-section) {
-  background-color: #f0f0f0;
+  background-color: transparent;
   padding: 15px;
   border-radius: 4px;
   margin: 15px 0;
-  color: #444;
+  color: #999; /* Changed from #777 to a lighter #999 */
   border-left: 3px solid #ccc;
-  font-style: italic;
 }
 </style>
